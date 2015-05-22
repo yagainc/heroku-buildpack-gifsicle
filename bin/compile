@@ -1,22 +1,30 @@
 #!/usr/bin/env bash
-# bin/compile <build-dir> <cache-dir>
-TAR_URL=https://github.com/kohler/gifsicle/archive/v1.87.tar.gz
+set -eo pipefail
 
-echo "-----> Installing gifsicle"
+indent() {
+  sed -u 's/^/       /'
+}
 
-VENDOR_PATH=$1/vendor
-PROFILE_PATH="$1/.profile.d"
+GIFSICLE_VERSION="1.87"
+
+echo "-----> Installing gifsicle $GIFSICLE_VERSION"
+
+BUILD_DIR="$1"
+VENDOR_PATH="$BUILD_DIR/vendor"
+
+PROFILE_PATH="$BUILD_DIR/.profile.d"
 INSTALL_PATH="$VENDOR_PATH/gifsicle"
 
-# change to the the BUILD_DIR ($1)
-cd $1
-mkdir -p vendor/gifsicle
-cd vendor/gifsicle
+DOWNLOAD_URL="https://github.com/kohler/gifsicle/archive/v$GIFSICLE_VERSION.tar.gz"
 
-TAR_URL=https://github.com/kohler/gifsicle/archive/v1.87.tar.gz
-curl -L --silent $TAR_URL | tar xz
+echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
 
-cd gifsicle-1.87
+mkdir -p "$INSTALL_PATH"
+# cd "$INSTALL_PATH"
+
+curl -L --silent $DOWNLOAD_URL | tar xz
+
+cd "gifsicle-$GIFSICLE_VERSION"
 
 ./bootstrap.sh
 autoconf -i
@@ -25,5 +33,4 @@ autoconf -i
 make
 make install
 
-mkdir $PROFILE_PATH
-echo 'export PATH="$PATH:/app/vendor/gifsicle/bin"' >> "$PROFILE_PATH/gifsicle.sh"
+echo 'export PATH="$PATH:$INSTALL_PATH"' >> "$PROFILE_PATH/gifsicle.sh"
