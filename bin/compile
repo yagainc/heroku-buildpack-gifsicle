@@ -17,7 +17,7 @@ VENDOR_PATH="$BUILD_DIR/vendor"
 PROFILE_PATH="$BUILD_DIR/.profile.d"
 INSTALL_PATH="$VENDOR_PATH/$LIBRARY"
 
-DOWNLOAD_URL="https://github.com/kohler/gifsicle/archive/v$GIFSICLE_VERSION.tar.gz"
+DOWNLOAD_URL="https://github.com/kohler/gifsicle/archive/v$VERSION.tar.gz"
 
 echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
 
