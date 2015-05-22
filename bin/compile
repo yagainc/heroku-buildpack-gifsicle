@@ -12,7 +12,9 @@ VERSION="1.87"
 echo "-----> Installing LIBRARY$ $VERSION"
 
 BUILD_DIR="$1"
-VENDOR_PATH="$BUILD_DIR/vendor"
+
+VENDOR_DIR="vendor"
+VENDOR_PATH="$BUILD_DIR/$VENDOR_DIR"
 
 PROFILE_PATH="$BUILD_DIR/.profile.d"
 INSTALL_PATH="$VENDOR_PATH/$LIBRARY"
@@ -36,5 +38,5 @@ make
 make install
 
 mkdir -p "$PROFILE_PATH"
-EXPORT_PATH='export PATH="$PATH:'"$INSTALL_PATH"'/bin"'
+EXPORT_PATH='export PATH="$PATH:$HOME/'"$VENDOR_DIR/$LIBRARY"'/bin"'
 echo "$EXPORT_PATH" >> "$PROFILE_PATH/$LIBRARY.sh"
