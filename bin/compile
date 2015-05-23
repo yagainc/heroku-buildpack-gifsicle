@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# $ bin/compile <build-dir> <cache-dir> <env-path>
 set -eo pipefail
 
 indent() {
@@ -9,33 +10,59 @@ LIBRARY="gifsicle"
 
 VERSION="1.87"
 
-echo "-----> Installing LIBRARY$ $VERSION"
+echo "-----> Installing $LIBRARY $VERSION"
 
 BUILD_DIR="$1"
+CACHE_DIR="$2"
 
 VENDOR_DIR="vendor"
 VENDOR_PATH="$BUILD_DIR/$VENDOR_DIR"
 
+CACHE_PATH="$CACHE_DIR/$LIBRARY"
+CACHE_VERSION="$CACHE_DIR/version"
+
 PROFILE_PATH="$BUILD_DIR/.profile.d"
 INSTALL_PATH="$VENDOR_PATH/$LIBRARY"
 
-DOWNLOAD_URL="https://github.com/kohler/gifsicle/archive/v$VERSION.tar.gz"
-
-echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
-
 mkdir -p "$INSTALL_PATH"
+mkdir -p "$CACHE_DIR"
 # cd "$INSTALL_PATH"
 
-curl -L --silent $DOWNLOAD_URL | tar xz
+echo "-----> Looking for cached version"
 
-cd "$LIBRARY-$VERSION"
+if [ -f $CACHE_VERSION ]; then
+    CACHED_VERSION=$(cat $CACHED_VERSION)
+    echo "Cached version is $CACHED_VERSION" | indent
+else
+    CACHED_VERSION=
+    echo "No cached version found" | indent
+fi
 
-./bootstrap.sh
-autoconf -i
+if [ "$CACHED_VERSION" = "$VERSION" ]; then
+    echo "Extracting from cache" | indent
+    cp "$CACHE_PATH" "$INSTALL_PATH"
+else
+    echo "-----> Compiling from sources"
 
-./configure --disable-gifview --prefix="$INSTALL_PATH"
-make
-make install
+    DOWNLOAD_URL="https://github.com/kohler/gifsicle/archive/v$VERSION.tar.gz"
+
+    echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
+
+    curl -L --silent $DOWNLOAD_URL | tar xz
+
+    cd "$LIBRARY-$VERSION"
+
+    ./bootstrap.sh
+    autoconf -i
+
+    ./configure --disable-gifview --prefix="$INSTALL_PATH"
+    make
+    make install
+
+    echo "Caching results for future builds" | indent
+    cp "$INSTALL_PATH" "$CACHE_PATH"
+    echo "$VERSION" > "$CACHED_VERSION"
+fi
 
 mkdir -p "$PROFILE_PATH"
 EXPORT_PATH='export PATH="$PATH:$HOME/'"$VENDOR_DIR/$LIBRARY"'/bin"'
