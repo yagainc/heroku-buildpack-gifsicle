@@ -2,13 +2,25 @@
 # $ bin/compile <build-dir> <cache-dir> <env-path>
 set -eo pipefail
 
+if [ $(uname) == Darwin ]; then
+    sed() { command sed -l "$@"; }
+else
+    sed() { command sed -u "$@"; }
+fi
+
 indent() {
-  sed -u 's/^/       /'
+  sed 's/^/       /'
 }
+
+DEFAULT_VERSION="1.87"
 
 LIBRARY="gifsicle"
 
-VERSION="1.87"
+if [ -n "$GIFSICLE_VERSION" ]; then
+    VERSION="$GIFSICLE_VERSION"
+else
+    VERSION="$DEFAULT_VERSION"
+fi
 
 echo "-----> Installing $LIBRARY $VERSION"
 
@@ -19,19 +31,18 @@ VENDOR_DIR="vendor"
 VENDOR_PATH="$BUILD_DIR/$VENDOR_DIR"
 
 CACHE_PATH="$CACHE_DIR/$LIBRARY"
-CACHE_VERSION="$CACHE_DIR/version"
+CACHE_VERSION="$CACHE_PATH/version"
 
 PROFILE_PATH="$BUILD_DIR/.profile.d"
 INSTALL_PATH="$VENDOR_PATH/$LIBRARY"
 
 mkdir -p "$INSTALL_PATH"
 mkdir -p "$CACHE_DIR"
-# cd "$INSTALL_PATH"
 
 echo "-----> Looking for cached version"
 
-if [ -f $CACHE_VERSION ]; then
-    CACHED_VERSION=$(cat $CACHED_VERSION)
+if [ -f "$CACHE_VERSION" ]; then
+    CACHED_VERSION=$(cat "$CACHE_VERSION")
     echo "Cached version is $CACHED_VERSION" | indent
 else
     CACHED_VERSION=
@@ -40,28 +51,28 @@ fi
 
 if [ "$CACHED_VERSION" = "$VERSION" ]; then
     echo "Extracting from cache" | indent
-    cp "$CACHE_PATH" "$INSTALL_PATH"
+    cp -r "$CACHE_PATH" "$INSTALL_PATH"
 else
     echo "-----> Compiling from sources"
 
     DOWNLOAD_URL="https://github.com/kohler/gifsicle/archive/v$VERSION.tar.gz"
 
-    echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
+    echo "DOWNLOAD_URL = $DOWNLOAD_URL" | indent
 
     curl -L --silent $DOWNLOAD_URL | tar xz
 
     cd "$LIBRARY-$VERSION"
 
-    ./bootstrap.sh
-    autoconf -i
+    ./bootstrap.sh | indent
+    autoconf -i | indent
 
-    ./configure --disable-gifview --prefix="$INSTALL_PATH"
-    make
-    make install
+    ./configure --disable-gifview --prefix="$INSTALL_PATH" | indent
+    make | indent
+    make install | indent
 
     echo "Caching results for future builds" | indent
-    cp "$INSTALL_PATH" "$CACHE_PATH"
-    echo "$VERSION" > "$CACHED_VERSION"
+    cp -r "$INSTALL_PATH" "$CACHE_PATH"
+    echo "$VERSION" > "$CACHE_VERSION"
 fi
 
 mkdir -p "$PROFILE_PATH"
