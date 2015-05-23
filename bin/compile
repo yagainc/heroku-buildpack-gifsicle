@@ -12,6 +12,12 @@ indent() {
   sed 's/^/       /'
 }
 
+BUILD_DIR="$1"
+CACHE_DIR="$2"
+ENV_FILE=$3
+
+cat "$ENV_FILE"
+
 DEFAULT_VERSION="1.87"
 
 LIBRARY="gifsicle"
@@ -23,9 +29,6 @@ else
 fi
 
 echo "-----> Installing $LIBRARY $VERSION"
-
-BUILD_DIR="$1"
-CACHE_DIR="$2"
 
 VENDOR_DIR="vendor"
 VENDOR_PATH="$BUILD_DIR/$VENDOR_DIR"
